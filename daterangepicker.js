@@ -395,9 +395,9 @@
         this.container.addClass('opens' + this.opens);
 
         //swap the position of the predefined ranges if opens right
-        if (typeof options.ranges !== 'undefined' && this.opens == 'right') {
-            this.container.find('.ranges').prependTo( this.container.find('.calendar.left').parent() );
-        }
+        // if (typeof options.ranges !== 'undefined' && this.opens == 'right') {
+        //     this.container.find('.ranges').prependTo( this.container.find('.calendar.left').parent() );
+        // }
 
         //apply CSS classes and labels to buttons
         this.container.find('.applyBtn, .cancelBtn').addClass(this.buttonClasses);
@@ -461,6 +461,56 @@
     DateRangePicker.prototype = {
 
         constructor: DateRangePicker,
+
+        setMinDate: function(minDate) {
+            if (typeof minDate === 'string')
+                this.minDate = moment(minDate, this.locale.format);
+
+            if (typeof minDate === 'object')
+                this.minDate = moment(minDate);
+
+            if (!this.timePicker)
+                this.minDate = this.minDate.startOf('day');
+
+            if (this.timePicker && this.timePickerIncrement)
+                this.minDate.minute(Math.round(this.minDate.minute() / this.timePickerIncrement) * this.timePickerIncrement);
+
+            if (this.minDate && this.startDate.isBefore(this.minDate))
+                this.startDate = this.minDate;
+
+            if (this.maxDate && this.startDate.isAfter(this.maxDate))
+                this.startDate = this.maxDate;
+
+            if (!this.isShowing)
+                this.updateElement();
+
+            this.updateMonthsInView();
+        },
+
+        setMaxDate: function(maxDate) {
+            if (typeof maxDate === 'string')
+                this.maxDate = moment(maxDate, this.locale.format);
+
+            if (typeof maxDate === 'object')
+                this.maxDate = moment(maxDate);
+
+            if (!this.timePicker)
+                this.maxDate = this.maxDate.endOf('day');
+
+            if (this.timePicker && this.timePickerIncrement)
+                this.maxDate.minute(Math.round(this.maxDate.minute() / this.timePickerIncrement) * this.timePickerIncrement);
+
+            if (this.maxDate && this.startDate.isAfter(this.maxDate))
+                this.startDate = this.maxDate;
+
+            if (this.maxDate && this.endDate.isAfter(this.maxDate))
+                this.endDate = this.maxDate;
+
+            if (!this.isShowing)
+                this.updateElement();
+
+            this.updateMonthsInView();
+        },
 
         setStartDate: function(startDate) {
             if (typeof startDate === 'string')
@@ -1098,6 +1148,8 @@
 
         show: function(e) {
             if (this.isShowing) return;
+
+            this.element.trigger('beforeshow.daterangepicker', this);
 
             // Create a click proxy that is private to this instance of datepicker, for unbinding
             this._outsideClickProxy = $.proxy(function(e) { this.outsideClick(e); }, this);
